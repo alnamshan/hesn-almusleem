@@ -1,0 +1,293 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حصن المسلم</title>
+  <link rel="icon" href="icon.png">
+  <link rel="manifest" href="manifest.json">
+  <style>
+    /* تنسيق الصفحة العامة */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      overflow: hidden;
+    }
+    /* الحاوية الثابتة في الأعلى */
+    #fixed-top {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #f5f5f5;
+      z-index: 100;
+      /* ارتفاع ثابت يجمع: الهيدر (20px) + البنر (159px) + عبارة الوقف (40px) + مشغل الصوت (60px) = 300px */
+      height: 300px;
+      overflow: hidden;
+    }
+    header {
+      background-color: #4CAF50;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-size: 20px;
+      height: 50px;
+      line-height: 30px;
+    }
+    /* البنر: صورة ثابتة */
+    #banner {
+      width: 100%;
+      height: 159px;
+      object-fit: cover;
+      display: block;
+    }
+    /* عبارة الوقف */
+    #dedication {
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      padding: 8px;
+      font-size: 16px;
+      height: 30px;
+      line-height: 30px;
+    }
+    /* مشغل الصوت الثابت */
+    #audio-player-container {
+      background-color: #ddd;
+      text-align: center;
+      padding: 5px;
+      height: 60px;
+    }
+    #audio-player {
+      width: 90%;
+      max-width: 500px;
+    }
+    /* الحاوية القابلة للتمرير لقائمة المقاطع */
+    #content {
+      position: absolute;
+      top: 300px; /* يبدأ بعد انتهاء الجزء الثابت */
+      bottom: 40px; /* يترك مساحة للتذييل */
+      width: 100%;
+      overflow-y: auto;
+      padding: 10px;
+      box-sizing: border-box;
+      background-color: #fff;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    li {
+      background: white;
+      margin: 5px 0;
+      padding: 10px;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      border-radius: 5px;
+      text-align: right;
+    }
+    li:hover {
+      background-color: #f0f0f0;
+    }
+    /* التذييل ثابت في الأسفل */
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- الحاوية الثابتة في الأعلى -->
+  <div id="fixed-top">
+    <img id="banner" src="banner.png" alt="بنر حصن المسلم">
+    <div id="dedication">التطبيق وقف لٍوَالٍديّ وكل من ينشر الرابط</div>
+    <div id="audio-player-container">
+      <audio id="audio-player" controls></audio>
+    </div>
+  </div>
+
+  <!-- قائمة المقاطع المتحركة -->
+  <div id="content">
+    <ul id="audioList"></ul>
+  </div>
+
+  <!-- التذييل -->
+  <footer>
+    تطوير: ©إبراهيم النمشان - alnamshan7@
+  </footer>
+
+  <script>
+    // مصفوفة تضم 133 ملف صوتي مع أسمائها
+    const audioFiles = [
+      { name: "(1) المقدمة و فضل الذكر", file: "audio1.mp3" },
+      { name: "(2) أذكار الاستيقاظ من النوم", file: "audio2.mp3" },
+      { name: "(3) دعاء ُلبْس الثوب", file: "audio3.mp3" },
+      { name: "(4) دعاء ُلبْس الثوب الجديد", file: "audio4.mp3" },
+      { name: "(5) الدعاء لمن لبس ثوبا جديدا", file: "audio5.mp3" },
+      { name: "(6) ما يقول إذا وضع ثوبه", file: "audio6.mp3" },
+      { name: "(7) دعاء دخول الخلاء", file: "audio7.mp3" },
+      { name: "(8) دعاء الخروج من الخلاء", file: "audio8.mp3" },
+      { name: "(9) الذكر قبل الوضوء", file: "audio9.mp3" },
+      { name: "(10) الذكر بعد الفراغ من الوضوء", file: "audio10.mp3" },
+      { name: "(11) الذكر عند الخروج من المنزل", file: "audio11.mp3" },
+      { name: "(12) الذكر عند دخول المنزل", file: "audio12.mp3" },
+      { name: "(13) دعاء الذهاب إلى المسجد", file: "audio13.mp3" },
+      { name: "(14) دعاء دخول المسجد", file: "audio14.mp3" },
+      { name: "(15) دعاء الخروج من المسجد", file: "audio15.mp3" },
+      { name: "(16) أذكار الآذان", file: "audio16.mp3" },
+      { name: "(17) دعاء الاستفتاح", file: "audio17.mp3" },
+      { name: "(18) دعاء الركوع", file: "audio18.mp3" },
+      { name: "(19) دعاء الرفع من الركوع", file: "audio19.mp3" },
+      { name: "(20) دعاء السجود", file: "audio20.mp3" },
+      { name: "(21) دعاء الجلسة بين السجدتين", file: "audio21.mp3" },
+      { name: "(22) دعاء سجود التلاوة", file: "audio22.mp3" },
+      { name: "(23) التشهد", file: "audio23.mp3" },
+      { name: "(24) الصلاة على النبي بعد التشهد", file: "audio24.mp3" },
+      { name: "(25) الدعاء بعد التشهد الأخير قبل السلام", file: "audio25.mp3" },
+      { name: "(26) الأذكار بعد السلام من الصلاة", file: "audio26.mp3" },
+      { name: "(27) دعاء صلاة الاستخارة", file: "audio27.mp3" },
+      { name: "(28) أذكار الصباح والمساء", file: "audio28.mp3" },
+      { name: "(29) أذكار النوم", file: "audio29.mp3" },
+      { name: "(30) الدعاء إذا تقلب ليلا", file: "audio30.mp3" },
+      { name: "(31) دعاء الفزع في النوم و من بُلِيَ بالوحشة", file: "audio31.mp3" },
+      { name: "(32) ما يفعل من رأى الرؤيا أو الحلم", file: "audio32.mp3" },
+      { name: "(33) دعاء قنوت الوتر", file: "audio33.mp3" },
+      { name: "(34) الذكر عقب السلام من الوتر", file: "audio34.mp3" },
+      { name: "(35) دعاء الهم والحزن", file: "audio35.mp3" },
+      { name: "(36) دعاء الكرب", file: "audio36.mp3" },
+      { name: "(37) دعاء لقاء العدو و ذي السلطان", file: "audio37.mp3" },
+      { name: "(38) دعاء من خاف ظلم السلطان", file: "audio38.mp3" },
+      { name: "(39) الدعاء على العدو", file: "audio39.mp3" },
+      { name: "(40) ما يقول من خاف قوما", file: "audio40.mp3" },
+      { name: "(41) دعاء من أصابه شك في الإيمان", file: "audio41.mp3" },
+      { name: "(42) دعاء قضاء الدين", file: "audio42.mp3" },
+      { name: "(43) دعاء الوسوسة في الصلاة و القراءة", file: "audio43.mp3" },
+      { name: "(44) دعاء من استصعب عليه أمر", file: "audio44.mp3" },
+      { name: "(45) ما يقول ويفعل من أذنب ذنبا", file: "audio45.mp3" },
+      { name: "(46) دعاء طرد الشيطان و وساوسه", file: "audio46.mp3" },
+      { name: "(47) الدعاء حينما يقع ما لا يرضاه أو غلب على أمره", file: "audio47.mp3" },
+      { name: "(48) تهنئة المولود له وجوابه", file: "audio48.mp3" },
+      { name: "(49) ما يعوذ به الأولاد", file: "audio49.mp3" },
+      { name: "(50) الدعاء للمريض في عيادته", file: "audio50.mp3" },
+      { name: "(51) فضل عيادة المريض", file: "audio51.mp3" },
+      { name: "(52) دعاء المريض الذي يئس من حياته", file: "audio52.mp3" },
+      { name: "(53) تلقين المحتضر", file: "audio53.mp3" },
+      { name: "(54) دعاء من أصيب بمصيبة", file: "audio54.mp3" },
+      { name: "(55) الدعاء عند إغماض الميت", file: "audio55.mp3" },
+      { name: "(56) الدعاء للميت في الصلاة عليه", file: "audio56.mp3" },
+      { name: "(57) الدعاء للفرط في الصلاة عليه", file: "audio57.mp3" },
+      { name: "(58) دعاء التعزية", file: "audio58.mp3" },
+      { name: "(59) الدعاء عند إدخال الميت القبر", file: "audio59.mp3" },
+      { name: "(60) الدعاء بعد دفن الميت", file: "audio60.mp3" },
+      { name: "(61) دعاء زيارة القبور", file: "audio61.mp3" },
+      { name: "(62) دعاء الريح", file: "audio62.mp3" },
+      { name: "(63) دعاء الرعد", file: "audio63.mp3" },
+      { name: "(64) من أدعية الاستسقاء", file: "audio64.mp3" },
+      { name: "(65) الدعاء إذا نزل المطر", file: "audio65.mp3" },
+      { name: "(66) الذكر بعد نزول المطر", file: "audio66.mp3" },
+      { name: "(67) من أدعية الاستصحاء", file: "audio67.mp3" },
+      { name: "(68) دعاء رؤية الهلال", file: "audio68.mp3" },
+      { name: "(69) الدعاء عند إفطار الصائم", file: "audio69.mp3" },
+      { name: "(70) الدعاء قبل الطعام", file: "audio70.mp3" },
+      { name: "(71) الدعاء عند الفراغ من الطعام", file: "audio71.mp3" },
+      { name: "(72) دعاء الضيف لصاحب الطعام", file: "audio72.mp3" },
+      { name: "(73) الدعاء لمن سقاه أو إذا أراد ذلك", file: "audio73.mp3" },
+      { name: "(74) الدعاء إذا أفطر عند أهل بيت", file: "audio74.mp3" },
+      { name: "(75) دعاء الصائم إذا حضر الطعام ولم يفطر", file: "audio75.mp3" },
+      { name: "(76) ما يقول الصائم إذا سابه أحد", file: "audio76.mp3" },
+      { name: "(77) الدعاء عند رؤية باكورة الثمر", file: "audio77.mp3" },
+      { name: "(78) دعاء العطاس", file: "audio78.mp3" },
+      { name: "(79) ما يقال للكافر إذا عطس فحمد الله", file: "audio79.mp3" },
+      { name: "(80) الدعاء للمتزوج", file: "audio80.mp3" },
+      { name: "(81) دعاء المتزوج و شراء الدابة", file: "audio81.mp3" },
+      { name: "(82) الدعاء قبل إتيان الزوجة", file: "audio82.mp3" },
+      { name: "(83) دعاء الغضب", file: "audio83.mp3" },
+      { name: "(84) دعاء من رأى مبتلى", file: "audio84.mp3" },
+      { name: "(85) ما يقال في المجلس", file: "audio85.mp3" },
+      { name: "(86) كفارة المجلس", file: "audio86.mp3" },
+      { name: "(87) الدعاء لمن قال غفر الله لك", file: "audio87.mp3" },
+      { name: "(88) الدعاء لمن صنع إليك معروفا", file: "audio88.mp3" },
+      { name: "(89) ما يعصم الله به من الدجال", file: "audio89.mp3" },
+      { name: "(90) الدعاء لمن قال إني أحبك في الله", file: "audio90.mp3" },
+      { name: "(91) الدعاء لمن عرض عليك ماله", file: "audio91.mp3" },
+      { name: "(92) الدعاء لمن اقرض عند القضاء", file: "audio92.mp3" },
+      { name: "(93) دعاء الخوف من الشرك", file: "audio93.mp3" },
+      { name: "(94) الدعاء لمن قال بارك الله فيك", file: "audio94.mp3" },
+      { name: "(95) دعاء كراهية الطيرة", file: "audio95.mp3" },
+      { name: "(96) دعاء الركوب", file: "audio96.mp3" },
+      { name: "(97) دعاء السفر", file: "audio97.mp3" },
+      { name: "(98) دعاء دخول القرية أو البلدة", file: "audio98.mp3" },
+      { name: "(99) دعاء دخول السوق", file: "audio99.mp3" },
+      { name: "(100) الدعاء إذا تعس المركوب", file: "audio100.mp3" },
+      { name: "(101) دعاء المسافر للمقيم", file: "audio101.mp3" },
+      { name: "(102) دعاء المقيم للمسافر", file: "audio102.mp3" },
+      { name: "(103) التكبير و التسبيح في سير السفر", file: "audio103.mp3" },
+      { name: "(104) دعاء المسافر إذا أسحر", file: "audio104.mp3" },
+      { name: "(105) الدعاء إذا نزل مترلا في سفر أو غيره", file: "audio105.mp3" },
+      { name: "(106) ذكر الرجوع من السفر", file: "audio106.mp3" },
+      { name: "(107) ما يقول من أتاه أمر يسره أو يكرهه", file: "audio107.mp3" },
+      { name: "(108) فضل الصلاة على النبي صلى الله عليه وسلم", file: "audio108.mp3" },
+      { name: "(109) إفشاء السلام", file: "audio109.mp3" },
+      { name: "(110) كيف يرد السلام على الكافر إذا سلم", file: "audio110.mp3" },
+      { name: "(111) دعاء صياح الديك ونهيق الحمار", file: "audio111.mp3" },
+      { name: "(112) دعاء نباح الكلاب بالليل", file: "audio112.mp3" },
+      { name: "(113) الدعاء لمن سببته", file: "audio113.mp3" },
+      { name: "(114) ما يقول المسلم إذا مدح المسلم", file: "audio114.mp3" },
+      { name: "(115) ما يقول المسلم إذا زكي", file: "audio115.mp3" },
+      { name: "(116) كيف يلبي المحرم في الحج أو العمرة؟", file: "audio116.mp3" },
+      { name: "(117) التكبير إذا أتى الركن الأسود", file: "audio117.mp3" },
+      { name: "(118) الدعاء بين الركن اليماني والحجر الأسود", file: "audio118.mp3" },
+      { name: "(119) دعاء الوقوف على الصفا والمروة", file: "audio119.mp3" },
+      { name: "(120) الدعاء يوم عرفة", file: "audio120.mp3" },
+      { name: "(121) الذكر عند المشعر الحرام", file: "audio121.mp3" },
+      { name: "(122) التكبير عند رمي الجمار مع كل حصاة", file: "audio122.mp3" },
+      { name: "(123) دعاء التعجب والأمر السار", file: "audio123.mp3" },
+      { name: "(124) ما يفعل من أتاه أمر يسره", file: "audio124.mp3" },
+      { name: "(125) ما يقول من أحس وجعا في جسده", file: "audio125.mp3" },
+      { name: "(126) دعاء من خشي أن يصيب شيئا بعينه", file: "audio126.mp3" },
+      { name: "(127) ما يقال عند الفزع", file: "audio127.mp3" },
+      { name: "(128) ما يقول عند الذبح أو النحر", file: "audio128.mp3" },
+      { name: "(129) ما يقول لرد كيد مردة الشياطين", file: "audio129.mp3" },
+      { name: "(130) الاستغفار و التوبة", file: "audio130.mp3" },
+      { name: "(131) فضل التسبيح و التحميد، و التهليل، و التكبير", file: "audio131.mp3" },
+      { name: "(132) كيف كان النبي يسبح؟", file: "audio132.mp3" },
+      { name: "(133) من أنواع الخير والآداب الجامعة", file: "audio133.mp3" }
+    ];
+
+    // توليد القائمة
+    const audioListContainer = document.getElementById('audioList');
+    audioFiles.forEach(audio => {
+      const li = document.createElement('li');
+      li.innerText = audio.name;
+      li.onclick = () => playAudio(audio.file);
+      audioListContainer.appendChild(li);
+    });
+
+    // دالة تشغيل الصوت
+    function playAudio(filename) {
+      const audioPlayer = document.getElementById('audio-player');
+      audioPlayer.src = filename;
+      audioPlayer.play();
+    }
+
+    // بعد 60 ثانية، عرض اقتراح إضافة الصفحة للشاشة الرئيسية
+    setTimeout(() => {
+      if (window.matchMedia('(display-mode: standalone)').matches) return;
+      if (confirm("هل تريد إضافة الصفحة للشاشة الرئيسية؟")) {
+        alert("يمكنك الإضافة من خلال إعدادات المتصفح.");
+      }
+    }, 60000);
+  </script>
+
+</body>
+</html>
